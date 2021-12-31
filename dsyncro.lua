@@ -16,7 +16,7 @@ local g_store           = {}
 
 dsyncroMT.__index       = g_store
 
-local function invokeCallbacksOn(key, value)
+local function invoke_callback_on(key, value)
     for _, setter in pairs(g_settersCallback) do
         setter(key, value)
     end
@@ -35,7 +35,7 @@ dsyncroMT.__newindex = function(_, key, value)
 
     g_store[key]   = value
 
-    invokeCallbacksOn(key, value)
+    invoke_callback_on(key, value)
 
     if watcher then
         watcher(oldValue, value)

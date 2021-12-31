@@ -23,7 +23,9 @@ dsyncroMT.__newindex = function(t, key, value)
 
     local oldValue = t.__store[key]
 
-    g_store[key]   = value
+    if oldValue == value then
+        return
+    end
 
     t.__store[key] = value
 

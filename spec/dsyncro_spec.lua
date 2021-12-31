@@ -52,4 +52,14 @@ describe('sync', function()
         assert.spy(onSetSpy).was_called_with('name', 'Waleed')
     end)
 
+    it('should not invoke when value is not changed', function()
+        local value    = 'Waleed'
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['name'] = value
+        dsyncro['name'] = value
+        assert.spy(onSetSpy).was_called(1)
+        assert.spy(onSetSpy).was_called_with('name', 'Waleed')
+    end)
 end)

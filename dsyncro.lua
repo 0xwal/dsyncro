@@ -7,7 +7,6 @@ local dsyncroMT      = {}
 dsyncro              = {}
 
 dsyncroMT.__index    = function(t, k)
-    error('index called')
     return t.__store[k]
 end
 

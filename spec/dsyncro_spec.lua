@@ -19,12 +19,18 @@ describe('dsyncro', function()
         assert.is_table(dsyncro)
     end)
 
+    it('should has new', function()
+        assert.is_function(dsyncro.new)
+    end)
+
     it('should be able to set a property', function()
+        local dsyncro   = dsyncro.new()
         dsyncro['name'] = 'Waleed'
         assert.is_equal('Waleed', dsyncro['name'])
     end)
 
     it('should be able to add watcher to a property', function()
+        local dsyncro    = dsyncro.new()
         local watcherSpy = spy()
         dsyncro['@name'] = watcherSpy
         dsyncro['name']  = 'waleed'
@@ -38,8 +44,9 @@ end)
 
 describe('sync', function()
     it('should able to add on set', function()
+        local dsyncro  = dsyncro.new()
         local onSetSpy = spy()
-        dsyncro.on_set(onSetSpy)
+        dsyncro:onKeySet(onSetSpy)
         dsyncro['name'] = 'Waleed'
         assert.spy(onSetSpy).was_called(1)
         assert.spy(onSetSpy).was_called_with('name', 'Waleed')

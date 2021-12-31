@@ -3,45 +3,55 @@
 --- DateTime: 30/12/2021 3:54 PM
 ---
 
-local dsyncroMT         = {}
+local dsyncroMT      = {}
+dsyncro              = {}
 
-dsyncro                 = setmetatable({}, dsyncroMT)
-dsyncro.__index         = dsyncro
-
-local g_settersCallback = {}
-
-local g_watchers        = {}
-
-local g_store           = {}
-
-dsyncroMT.__index       = g_store
-
-local function invoke_callback_on(key, value)
-    for _, setter in pairs(g_settersCallback) do
-        setter(key, value)
-    end
+dsyncroMT.__index    = function(t, k)
+    error('index called')
+    return t.__store[k]
 end
 
-dsyncroMT.__newindex = function(_, key, value)
+dsyncroMT.__newindex = function(t, key, value)
+
     if key:find('@') then
-        local actualKey       = string.gsub(key, '@', '')
-        g_watchers[actualKey] = value
+        local actualKey         = string.gsub(key, '@', '')
+        t.__watchers[actualKey] = value
         return
     end
 
-    local watcher  = g_watchers[key]
+    local watcher  = t.__watchers[key]
 
-    local oldValue = g_store[key]
+    local oldValue = t.__store[key]
 
     g_store[key]   = value
 
-    invoke_callback_on(key, value)
+    t.__store[key] = value
+
+    t:_invokeSetCallbacks(key, value)
 
     if watcher then
         watcher(oldValue, value)
     end
 end
 
-function dsyncro.on_set(callback)
-    g_settersCallback[tostring(callback)] = callback
+function dsyncroMT:onKeySet(callback)
+    self.__settersCallback[tostring(callback)] = callback
+end
+
+function dsyncroMT:_invokeSetCallbacks(key, value)
+    for _, callback in pairs(self.__settersCallback) do
+        callback(key, value)
+    end
+end
+
+function dsyncro.new()
+    local o             = {}
+    o.__watchers        = {}
+    o.__store           = {}
+    o.__settersCallback = {}
+    setmetatable(o, dsyncroMT)
+    dsyncroMT.__index = function(t, k)
+        return t.__store[k] or dsyncroMT[k]
+    end
+    return o
 end

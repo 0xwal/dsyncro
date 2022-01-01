@@ -69,5 +69,6 @@ describe('sync', function()
         dsyncro:onKeySet(onSetSpy)
         dsyncro['-name'] = 'Waleed'
         assert.spy(onSetSpy).was_not_called()
+        assert.is_equal('Waleed', dsyncro['name'])
     end)
 end)

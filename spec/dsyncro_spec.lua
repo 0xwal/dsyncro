@@ -62,4 +62,12 @@ describe('sync', function()
         assert.spy(onSetSpy).was_called(1)
         assert.spy(onSetSpy).was_called_with('name', 'Waleed')
     end)
+
+    it('should able to set a value without invoking callback', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['-name'] = 'Waleed'
+        assert.spy(onSetSpy).was_not_called()
+    end)
 end)

@@ -18,9 +18,11 @@ dsyncroMT.__newindex = function(t, key, value)
         return
     end
 
-    local watcher  = t.__watchers[key]
+    local shouldBeSilent = string.find(key, '^-') ~= nil
 
-    local oldValue = t.__store[key]
+    local watcher        = t.__watchers[key]
+
+    local oldValue       = t.__store[key]
 
     if oldValue == value then
         return
@@ -28,7 +30,10 @@ dsyncroMT.__newindex = function(t, key, value)
 
     t.__store[key] = value
 
-    t:_invokeSetCallbacks(key, value)
+    if not shouldBeSilent then
+        key = string.gsub(key, '-', '')
+        t:_invokeSetCallbacks(key, value)
+    end
 
     if watcher then
         watcher(oldValue, value)

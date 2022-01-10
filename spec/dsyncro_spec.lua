@@ -135,7 +135,7 @@ describe('dsyncro', function()
             dsyncro['@class']            = watcherSpy
             dsyncro['class']             = {}
             dsyncro['class']['students'] = {}
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = {} }))
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = {} }))
             table.insert(dsyncro['class']['students'], 'Waleed')
             assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed' } }))
             table.insert(dsyncro['class']['students'], 'BISOON')

@@ -14,16 +14,22 @@ local function internal_compare(value, expected, iterator)
     for k, _ in iterator(expected) do
         local expectedValue = expected[k]
         local actualValue   = value[k]
+
+        if type(expectedValue) ~= type(actualValue) then
+            return false
+        end
+
         if type(expectedValue) == 'table' then
-            if type(actualValue) ~= 'table' then
-                hasError = false
-            else
-                hasError = internal_compare(actualValue, expectedValue, iterator)
-            end
-        else
-            if not value[k] or value[k] ~= expected[k] then
+
+            if #expectedValue ~= #actualValue then
                 return false
             end
+
+            return internal_compare(actualValue, expectedValue, iterator)
+        end
+
+        if expectedValue ~= actualValue then
+            return false
         end
 
         if hasError then
@@ -129,11 +135,11 @@ describe('dsyncro', function()
             dsyncro['@class']            = watcherSpy
             dsyncro['class']             = {}
             dsyncro['class']['students'] = {}
-            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = {} } })
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = {} }))
             table.insert(dsyncro['class']['students'], 'Waleed')
-            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed' } } })
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed' } }))
             table.insert(dsyncro['class']['students'], 'BISOON')
-            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed', 'BISOON' } } })
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed', 'BISOON' } }))
             assert.spy(watcherSpy).was_called(4)
         end)
 
@@ -146,10 +152,21 @@ describe('dsyncro', function()
             table.insert(dsyncro['students'], { name = 'Waleed' })
             assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' } }))
             assert.is_equal('Waleed', dsyncro['students'][1].name)
+
             table.insert(dsyncro['students'], { name = 'BISOON' })
             assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' }, { name = 'BISOON' } }))
             assert.is_equal('BISOON', dsyncro['students'][2].name)
+
             assert.spy(watcherSpy).was_called(3)
+        end)
+
+        it('should execute watcher for init value table as dsyncro instance', function()
+            local dsyncro        = dsyncro.new()
+            local watcherSpy     = spy()
+            dsyncro['@students'] = watcherSpy
+            dsyncro['students']  = { t = 99 }
+            assert.spy(watcherSpy).was_called(1)
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ __store = { t = 99 } }))
         end)
     end)
 end)

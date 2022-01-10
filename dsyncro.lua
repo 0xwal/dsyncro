@@ -22,6 +22,10 @@ end
 
 local function createChildFor(key, parent, items)
     local newT = dsyncro.new()
+    for k, v in ipairs(items) do
+        newT[k] = v
+    end
+
     for k, v in pairs(items) do
         newT[k] = v
     end

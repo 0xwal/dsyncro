@@ -6,10 +6,6 @@
 local dsyncroMT   = {}
 dsyncro           = {}
 
-dsyncroMT.__index = function(t, k)
-    return t.__store[k]
-end
-
 local function invoke_watcher_recursively(t, k, v)
     local w = t.__watchers[k]
 
@@ -22,6 +18,17 @@ local function invoke_watcher_recursively(t, k, v)
     end
 
     invoke_watcher_recursively(t.__parent, t.__parentName, t.__parent.__store[t.__parentName])
+end
+
+local function createChildFor(key, parent, items)
+    local newT = dsyncro.new()
+    for k, v in pairs(items) do
+        newT[k] = v
+    end
+
+    rawset(newT, '__parent', parent)
+    rawset(newT, '__parentName', key)
+    return newT
 end
 
 dsyncroMT.__newindex = function(t, key, value)
@@ -37,26 +44,15 @@ dsyncroMT.__newindex = function(t, key, value)
         key = string.gsub(key, '-', '')
     end
 
-    if type(value) ~= 'table' then
-        if type(key) == 'number' then
-            table.insert(t.__store, value)
-        else
-            t.__store[key] = value
-        end
+    if type(value) == 'table' then
+        local newT = createChildFor(key, t, value)
+        value      = newT
+    end
+
+    if type(key) ~= 'number' then
+        t.__store[key] = value
     else
-        local newT = dsyncro.new()
-        for k, v in pairs(value) do
-            newT[k] = v
-        end
-
-        rawset(newT, '__parent', t)
-        rawset(newT, '__parentName', key)
-
-        if type(key) == 'number' then
-            table.insert(t.__store, value)
-        else
-            t.__store[key] = newT
-        end
+        table.insert(t.__store, value)
     end
 
     if not shouldBeSilent then

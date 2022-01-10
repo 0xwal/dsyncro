@@ -70,71 +70,87 @@ describe('dsyncro', function()
         assert.is_equal('Waleed', dsyncro['name'])
     end)
 
-    it('should be able to add watcher to a property', function()
-        local dsyncro    = dsyncro.new()
-        local watcherSpy = spy()
-        dsyncro['@name'] = watcherSpy
-        dsyncro['name']  = 'waleed'
-        assert.spy(watcherSpy).was_called_with('waleed')
-        dsyncro['name'] = 'Waleed'
-        assert.spy(watcherSpy).was_called_with('Waleed')
+    describe('watcher', function()
+        it('should be able to add watcher to a property', function()
+            local dsyncro    = dsyncro.new()
+            local watcherSpy = spy()
+            dsyncro['@name'] = watcherSpy
+            dsyncro['name']  = 'waleed'
+            assert.spy(watcherSpy).was_called_with('waleed')
+            dsyncro['name'] = 'Waleed'
+            assert.spy(watcherSpy).was_called_with('Waleed')
 
-        assert.spy(watcherSpy).was_called(2)
-    end)
+            assert.spy(watcherSpy).was_called(2)
+        end)
 
-    it('should able to invoke watcher for a table', function()
-        local dsyncro        = dsyncro.new()
-        local watcherSpy     = spy()
-        dsyncro['@students'] = watcherSpy
-        dsyncro['students']  = {}
-        assert.spy(watcherSpy).was_called_with(match.object_contain({}))
-        dsyncro['students']['Waleed'] = true
-        assert.spy(watcherSpy).was_called_with(match.object_contain({ Waleed = true }))
-        dsyncro['students']['BISOON'] = true
-        assert.spy(watcherSpy).was_called_with(match.object_contain({ Waleed = true, BISOON = true }))
-        assert.spy(watcherSpy).was_called(3)
-    end)
+        it('should able to invoke watcher when adding property to a table', function()
+            local dsyncro        = dsyncro.new()
+            local watcherSpy     = spy()
+            dsyncro['@students'] = watcherSpy
+            dsyncro['students']  = {}
+            assert.spy(watcherSpy).was_called_with(match.object_contain({}))
+            dsyncro['students']['waleed'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true }))
+            dsyncro['students']['bisoon'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true, bisoon = true }))
+            assert.spy(watcherSpy).was_called(3)
+        end)
 
-    it('should be able to invoke watcher for a table that got a new value inserted', function()
-        local dsyncro        = dsyncro.new()
-        local watcherSpy     = spy()
-        dsyncro['@students'] = watcherSpy
-        dsyncro['students']  = {}
-        assert.spy(watcherSpy).was_called_with(match.array_contain({}))
-        table.insert(dsyncro['students'], 'Waleed')
-        assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed' }))
-        table.insert(dsyncro['students'], 'BISOON')
-        assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed', 'BISOON' }))
-        assert.spy(watcherSpy).was_called(3)
-    end)
+        it('should able to invoke watcher for a multi nested table when adding property', function()
+            local dsyncro                = dsyncro.new()
+            local watcherSpy             = spy()
+            dsyncro['@class']            = watcherSpy
+            dsyncro['class']             = {}
+            dsyncro['class']['students'] = {}
+            assert.spy(watcherSpy).was_called_with(match.object_contain({}))
+            dsyncro['class']['students']['waleed'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }))
+            dsyncro['class']['students']['bisoon'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }))
+            assert.spy(watcherSpy).was_called(4)
+        end)
 
-    it('should be able to invoke watcher for multi nested table that got a new value inserted', function()
-        local dsyncro                = dsyncro.new()
-        local watcherSpy             = spy()
-        dsyncro['@class']            = watcherSpy
-        dsyncro['class']             = {}
-        dsyncro['class']['students'] = {}
-        assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = {} } })
-        table.insert(dsyncro['class']['students'], 'Waleed')
-        assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed' } } })
-        table.insert(dsyncro['class']['students'], 'BISOON')
-        assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed', 'BISOON' } } })
-        assert.spy(watcherSpy).was_called(4)
-    end)
+        it('should be able to invoke watcher for a table array that got a new value inserted', function()
+            local dsyncro        = dsyncro.new()
+            local watcherSpy     = spy()
+            dsyncro['@students'] = watcherSpy
+            dsyncro['students']  = {}
+            assert.spy(watcherSpy).was_called_with(match.array_contain({}))
+            table.insert(dsyncro['students'], 'Waleed')
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed' }))
+            table.insert(dsyncro['students'], 'BISOON')
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed', 'BISOON' }))
+            assert.spy(watcherSpy).was_called(3)
+        end)
 
-    it('should carry nested table key and value pairs as associative array', function()
-        local dsyncro        = dsyncro.new()
-        local watcherSpy     = spy()
-        dsyncro['@students'] = watcherSpy
-        dsyncro['students']  = {}
-        assert.spy(watcherSpy).was_called_with(match.array_contain({}))
-        table.insert(dsyncro['students'], { name = 'Waleed' })
-        assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' } }))
-        assert.is_equal('Waleed', dsyncro['students'][1].name)
-        table.insert(dsyncro['students'], { name = 'BISOON' })
-        assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' }, { name = 'BISOON' } }))
-        assert.is_equal('BISOON', dsyncro['students'][2].name)
-        assert.spy(watcherSpy).was_called(3)
+        it('should be able to invoke watcher for multi nested table that got a new value inserted', function()
+            local dsyncro                = dsyncro.new()
+            local watcherSpy             = spy()
+            dsyncro['@class']            = watcherSpy
+            dsyncro['class']             = {}
+            dsyncro['class']['students'] = {}
+            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = {} } })
+            table.insert(dsyncro['class']['students'], 'Waleed')
+            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed' } } })
+            table.insert(dsyncro['class']['students'], 'BISOON')
+            assert.spy(watcherSpy).was_called_with(match.object_contain { class = { students = { 'Waleed', 'BISOON' } } })
+            assert.spy(watcherSpy).was_called(4)
+        end)
+
+        it('should execute watcher when inserting a table to an array', function()
+            local dsyncro        = dsyncro.new()
+            local watcherSpy     = spy()
+            dsyncro['@students'] = watcherSpy
+            dsyncro['students']  = {}
+            assert.spy(watcherSpy).was_called_with(match.array_contain({}))
+            table.insert(dsyncro['students'], { name = 'Waleed' })
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' } }))
+            assert.is_equal('Waleed', dsyncro['students'][1].name)
+            table.insert(dsyncro['students'], { name = 'BISOON' })
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' }, { name = 'BISOON' } }))
+            assert.is_equal('BISOON', dsyncro['students'][2].name)
+            assert.spy(watcherSpy).was_called(3)
+        end)
     end)
 end)
 

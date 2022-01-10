@@ -32,6 +32,7 @@ local function createChildFor(key, parent, items)
 
     rawset(newT, '__parent', parent)
     rawset(newT, '__parentName', key)
+    rawset(newT, '__settersCallback', parent.__settersCallback)
     return newT
 end
 
@@ -70,9 +71,24 @@ function dsyncroMT:onKeySet(callback)
     self.__settersCallback[tostring(callback)] = callback
 end
 
+local function reverse(t)
+    local out = {}
+    for i = #t, 1, -1 do
+        table.insert(out, t[i])
+    end
+    return out
+end
+
 function dsyncroMT:_invokeSetCallbacks(key, value)
-    for _, callback in pairs(self.__settersCallback) do
-        callback(key, value)
+    local path     = { key }
+    local currentT = self
+    while currentT do
+        table.insert(path, currentT.__parentName)
+        currentT = currentT.__parent
+    end
+    path = reverse(path)
+    for _, setter in pairs(self.__settersCallback) do
+        setter(table.concat(path, '.'), value)
     end
 end
 

@@ -172,6 +172,9 @@ describe('dsyncro', function()
 end)
 
 describe('sync', function()
+    before_each(function()
+        hard_require('dsyncro')
+    end)
     it('should able to add on set', function()
         local dsyncro  = dsyncro.new()
         local onSetSpy = spy()
@@ -200,5 +203,36 @@ describe('sync', function()
         dsyncro['-name'] = 'Waleed'
         assert.spy(onSetSpy).was_not_called()
         assert.is_equal('Waleed', dsyncro['name'])
+    end)
+
+    it('should invoke the handler with full key path', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['students']           = {}
+        dsyncro['students']['waleed'] = true
+        assert.spy(onSetSpy).was_called(2)
+        assert.spy(onSetSpy).was_called_with('students.waleed', true)
+    end)
+
+    it('should invoke the handler with full key path for nested multi level nested table', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['class']                       = {}
+        dsyncro['class']['students']           = {}
+        dsyncro['class']['students']['waleed'] = true
+        assert.spy(onSetSpy).was_called(3)
+        assert.spy(onSetSpy).was_called_with('class.students.waleed', true)
+    end)
+
+    it('should invoke the handler with full key path that has array', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['students'] = {}
+        table.insert(dsyncro['students'], 'waleed')
+        assert.spy(onSetSpy).was_called(2)
+        assert.spy(onSetSpy).was_called_with('students.1', 'waleed')
     end)
 end)

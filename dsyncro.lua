@@ -6,18 +6,18 @@
 local dsyncroMT   = {}
 dsyncro           = {}
 
-local function invoke_watcher_recursively(t, k, v)
+local function invoke_watcher_recursively(t, k)
     local w = t.__watchers[k]
 
     if w then
-        w(v)
+        w(t[k])
     end
 
     if not t.__parent then
         return
     end
 
-    invoke_watcher_recursively(t.__parent, t.__parentName, t.__parent.__store[t.__parentName])
+    invoke_watcher_recursively(t.__parent, t.__parentName)
 end
 
 local function createChildFor(key, parent, items)
@@ -64,7 +64,7 @@ dsyncroMT.__newindex = function(t, key, value)
         t:_invokeSetCallbacks(key, value)
     end
 
-    invoke_watcher_recursively(t, key, value)
+    invoke_watcher_recursively(t, key)
 end
 
 function dsyncroMT:onKeySet(callback)

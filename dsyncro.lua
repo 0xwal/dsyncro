@@ -94,16 +94,15 @@ function dsyncroMT:__newindex(key, value)
         return
     end
 
+    if has_silent_modifier(key) then
+        key           = sanitize_chars_from_string(key, '%-')
+        self.__silent = true
+    end
+
     if has_full_path(key) then
         local targetKey, target = get_target_from_full_path(self, key)
         target[targetKey]       = value
         return
-    end
-
-    local shouldBeSilent = has_silent_modifier(key)
-
-    if shouldBeSilent then
-        key = sanitize_chars_from_string(key, '%-')
     end
 
     if type(value) == 'table' and not value.dsyncro then
@@ -116,7 +115,7 @@ function dsyncroMT:__newindex(key, value)
         table.insert(self.__store, value)
     end
 
-    if not shouldBeSilent then
+    if not self.__silent then
         self:_invokeSetCallbacks(key, value)
     end
 
@@ -131,6 +130,9 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
     local path     = { key }
     local currentT = self
     while currentT do
+        if currentT.__silent then
+            return
+        end
         table.insert(path, currentT.__parentName)
         currentT = currentT.__parent
     end

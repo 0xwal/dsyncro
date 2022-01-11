@@ -273,6 +273,15 @@ describe('dsyncro set handler', function()
         assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students.1', 'waleed')
         assert.spy(onSetSpy).was_called(2)
     end)
+
+    it('should not invoke the handler when using the silent modifier with full path', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['-students.name'] = 'Waleed'
+        assert.spy(onSetSpy).was_not_called()
+        assert.is_equal('Waleed', dsyncro['students']['name'])
+    end)
 end)
 
 describe('set value using path', function()

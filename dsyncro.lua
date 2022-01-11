@@ -19,7 +19,7 @@ local function invoke_watcher_recursively(t, k)
     local w = t.__watchers[k]
 
     if w then
-        w(t[k])
+        w(t[k], t)
     end
 
     if not t.__parent then

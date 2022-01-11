@@ -59,22 +59,22 @@ local function has_full_path(key)
     return type(key) == 'string' and key:find('%.')
 end
 
-local function get_target_from_full_path(root, key)
-    local keys      = explode_string(key, '.')
+local function get_target_from_full_path(root, path)
+    local keys      = explode_string(path, '.')
     local target    = root
     local keysCount = #keys
     local lastKey   = keys[keysCount]
     for i = 1, keysCount do
-        local k = keys[i]
-        if k == lastKey then
+        local key = keys[i]
+        if key == lastKey then
             break
         end
 
-        if not target[k] then
-            target[k] = create_child_for(k, root, {})
+        if not target[key] then
+            target[key] = create_child_for(key, root, {})
         end
 
-        target = target[k]
+        target = target[key]
     end
     return lastKey, target
 end

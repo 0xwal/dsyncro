@@ -79,6 +79,16 @@ describe('dsyncro', function()
         assert.is_equal('Waleed', dsyncro['name'])
     end)
 
+    it('should not wrap the table if its already dsyncro instance', function()
+        local playerList               = dsyncro.new()
+        playerList['player-1']         = { name = 'player-name-1' }
+        playerList['player-2']         = {  }
+        playerList['player-2'].name    = 'player-name-2'
+        playerList['player-1'].friends = {}
+        table.insert(playerList['player-1'].friends, playerList['player-2'])
+        assert.is_equal('player-name-2', playerList['player-1'].friends[1].name)
+    end)
+
     describe('watcher', function()
         it('should be able to add watcher to a property', function()
             local dsyncro    = dsyncro.new()

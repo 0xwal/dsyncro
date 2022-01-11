@@ -106,7 +106,7 @@ function dsyncroMT:__newindex(key, value)
         key = sanitize_chars_from_string(key, '%-')
     end
 
-    if type(value) == 'table' then
+    if type(value) == 'table' and not value.__store then
         value = create_child_for(key, self, value)
     end
 

@@ -181,6 +181,18 @@ describe('dsyncro', function()
             assert.spy(watcherSpy).was_called(1)
             assert.spy(watcherSpy).was_called_with(match.object_contain({ __store = { t = 99 } }), match.any())
         end)
+
+        it('should execute watcher when add a table with inline child as table', function()
+            local watcherSpy                    = spy()
+            local data                          = dsyncro.new()
+            data['@class']                      = watcherSpy
+            data['class']                       = { students = {} }
+            data['class']['students']['waleed'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }), match.any())
+            data['class']['students']['bisoon'] = true
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any())
+            assert.spy(watcherSpy).was_called(3)
+        end)
     end)
 end)
 

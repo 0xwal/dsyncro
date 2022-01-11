@@ -41,7 +41,7 @@ local function create_child_for(key, parent, items)
     local newT = dsyncro.new()
 
     for k, v in pairs(items) do
-        newT.__store[k] = v
+        newT[k] = v
     end
 
     rawset(newT, '__parent', parent)

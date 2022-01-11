@@ -39,9 +39,6 @@ end
 
 local function create_child_for(key, parent, items)
     local newT = dsyncro.new()
-    for k, v in ipairs(items) do
-        newT.__store[k] = v
-    end
 
     for k, v in pairs(items) do
         newT.__store[k] = v
@@ -50,6 +47,7 @@ local function create_child_for(key, parent, items)
     rawset(newT, '__parent', parent)
     rawset(newT, '__parentName', key)
     rawset(newT, '__settersCallback', parent.__settersCallback)
+
     return newT
 end
 
@@ -62,10 +60,12 @@ local function has_full_path(key)
 end
 
 local function get_target_from_full_path(root, key)
-    local keys    = explode_string(key, '.')
-    local target  = root
-    local lastKey = keys[#keys]
-    for _, k in ipairs(keys) do
+    local keys      = explode_string(key, '.')
+    local target    = root
+    local keysCount = #keys
+    local lastKey   = keys[keysCount]
+    for i = 1, keysCount do
+        local k = keys[i]
         if k == lastKey then
             break
         end

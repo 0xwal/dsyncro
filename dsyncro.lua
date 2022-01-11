@@ -15,6 +15,26 @@ local function explode_string(string, sep)
     return t
 end
 
+local function reverse(t)
+    local out = {}
+    for i = #t, 1, -1 do
+        table.insert(out, t[i])
+    end
+    return out
+end
+
+local function iterate_instances_to_root(instance)
+    local currentInstance = instance
+    return function()
+        local instanceToReturn = currentInstance
+        if not instanceToReturn then
+            return
+        end
+        currentInstance = instanceToReturn.__parent
+        return instanceToReturn
+    end
+end
+
 local function invoke_watcher_recursively(t, k)
     local w = t.__watchers[k]
 
@@ -29,14 +49,6 @@ local function invoke_watcher_recursively(t, k)
     invoke_watcher_recursively(t.__parent, t.__parentName)
 end
 
-local function reverse(t)
-    local out = {}
-    for i = #t, 1, -1 do
-        table.insert(out, t[i])
-    end
-    return out
-end
-
 local function create_child_for(key, parent, items)
     local newT = dsyncro.new()
 
@@ -46,7 +58,6 @@ local function create_child_for(key, parent, items)
 
     rawset(newT, '__parent', parent)
     rawset(newT, '__parentName', key)
-    rawset(newT, '__settersCallback', parent.__settersCallback)
 
     return newT
 end
@@ -127,16 +138,26 @@ function dsyncroMT:onKeySet(callback)
 end
 
 function dsyncroMT:_invokeSetCallbacks(key, value)
-    local path     = { key }
-    local currentT = self
-    while currentT do
-        if currentT.__silent then
+    local setHandlers = {}
+    local path        = { key }
+
+    for instance in iterate_instances_to_root(self) do
+        if instance.__silent then
             return
         end
-        table.insert(path, currentT.__parentName)
-        currentT = currentT.__parent
+
+        for _, setterCallback in pairs(instance.__settersCallback) do
+            table.insert(setHandlers, setterCallback)
+        end
+
+        table.insert(path, instance.__parentName)
     end
-    path = reverse(path)
+
+    path = table.concat(reverse(path), '.')
+
+    if #setHandlers < 1 then
+        return
+    end
 
     local instance
 
@@ -146,8 +167,8 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
         instance = self
     end
 
-    for _, setter in pairs(self.__settersCallback) do
-        setter(instance, table.concat(path, '.'), value)
+    for _, setter in pairs(setHandlers) do
+        setter(instance, path, value)
     end
 end
 

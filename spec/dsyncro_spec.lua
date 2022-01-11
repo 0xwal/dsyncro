@@ -282,6 +282,21 @@ describe('dsyncro set handler', function()
         assert.spy(onSetSpy).was_not_called()
         assert.is_equal('Waleed', dsyncro['students']['name'])
     end)
+
+    it('should have the ability to register set handler on an instance level', function()
+        local dsyncro                = dsyncro.new()
+        local onSetSpy               = spy()
+        dsyncro['students']          = {}
+        dsyncro['students']['first'] = { name = 'Waleed' }
+        dsyncro['students']['first']:onKeySet(onSetSpy)
+        dsyncro['students']['first'].name  = '0xWaleed'
+        dsyncro['students']['second']      = { name = 'Bisoon' }
+        dsyncro['students']['second'].name = '0xBISOON'
+        assert.spy(onSetSpy).was_called(1)
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students.first.name', '0xWaleed')
+        assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second', match.any())
+        assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second.name', match.any())
+    end)
 end)
 
 describe('set value using path', function()

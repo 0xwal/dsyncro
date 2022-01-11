@@ -106,7 +106,7 @@ function dsyncroMT:__newindex(key, value)
         key = sanitize_chars_from_string(key, '%-')
     end
 
-    if type(value) == 'table' and not value.__store then
+    if type(value) == 'table' and not value.dsyncro then
         value = create_child_for(key, self, value)
     end
 
@@ -138,7 +138,7 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
 
     local instance
 
-    if type(value) == 'table' and value.__store then
+    if type(value) == 'table' and value.dsyncro then
         instance = value
     else
         instance = self
@@ -150,7 +150,7 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
 end
 
 function dsyncro.new()
-    local o             = {}
+    local o = { dsyncro = true }
     o.__watchers        = {}
     o.__store           = {}
     o.__settersCallback = {}

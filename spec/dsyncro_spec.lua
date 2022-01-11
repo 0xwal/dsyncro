@@ -55,6 +55,9 @@ end
 
 assert:register('matcher', 'object_contain', object_contain)
 assert:register('matcher', 'array_contain', array_contain)
+assert:register('matcher', 'any', function()
+    return function() return true end
+end)
 
 describe('dsyncro', function()
 
@@ -176,13 +179,14 @@ describe('dsyncro set handler', function()
     before_each(function()
         hard_require('dsyncro')
     end)
+
     it('should able to add on set', function()
         local dsyncro  = dsyncro.new()
         local onSetSpy = spy()
         dsyncro:onKeySet(onSetSpy)
         dsyncro['name'] = 'Waleed'
         assert.spy(onSetSpy).was_called(1)
-        assert.spy(onSetSpy).was_called_with('name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match._, 'name', 'Waleed')
     end)
 
     --todo required for later, we don't want to execute watcher for uncached value
@@ -213,7 +217,7 @@ describe('dsyncro set handler', function()
         dsyncro['students']           = {}
         dsyncro['students']['waleed'] = true
         assert.spy(onSetSpy).was_called(2)
-        assert.spy(onSetSpy).was_called_with('students.waleed', true)
+        assert.spy(onSetSpy).was_called_with(match._, 'students.waleed', true)
     end)
 
     it('should invoke the handler with full key path for nested multi level nested table', function()
@@ -224,7 +228,7 @@ describe('dsyncro set handler', function()
         dsyncro['class']['students']           = {}
         dsyncro['class']['students']['waleed'] = true
         assert.spy(onSetSpy).was_called(3)
-        assert.spy(onSetSpy).was_called_with('class.students.waleed', true)
+        assert.spy(onSetSpy).was_called_with(match._, 'class.students.waleed', true)
     end)
 
     it('should invoke the handler with full key path that has array', function()
@@ -234,7 +238,18 @@ describe('dsyncro set handler', function()
         dsyncro['students'] = {}
         table.insert(dsyncro['students'], 'waleed')
         assert.spy(onSetSpy).was_called(2)
-        assert.spy(onSetSpy).was_called_with('students.1', 'waleed')
+        assert.spy(onSetSpy).was_called_with(match._, 'students.1', 'waleed')
+    end)
+
+    it('should invoke the handler with instance', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['students'] = {}
+        assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students', match.any())
+        table.insert(dsyncro['students'], 'waleed')
+        assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students.1', 'waleed')
+        assert.spy(onSetSpy).was_called(2)
     end)
 end)
 

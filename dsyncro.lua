@@ -135,8 +135,17 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
         currentT = currentT.__parent
     end
     path = reverse(path)
+
+    local instance
+
+    if type(value) == 'table' and value.__store then
+        instance = value
+    else
+        instance = self
+    end
+
     for _, setter in pairs(self.__settersCallback) do
-        setter(table.concat(path, '.'), value)
+        setter(instance, table.concat(path, '.'), value)
     end
 end
 

@@ -171,7 +171,8 @@ describe('dsyncro', function()
     end)
 end)
 
-describe('sync', function()
+describe('dsyncro set handler', function()
+
     before_each(function()
         hard_require('dsyncro')
     end)
@@ -235,4 +236,28 @@ describe('sync', function()
         assert.spy(onSetSpy).was_called(2)
         assert.spy(onSetSpy).was_called_with('students.1', 'waleed')
     end)
+end)
+
+describe('set value using path', function()
+    it('should be able to set value using path', function()
+        local data          = dsyncro.new()
+        data['person']      = {}
+        data['person.name'] = 'Waleed'
+        assert.is_equal(data['person']['name'], 'Waleed')
+    end)
+
+    it('should be able to set value in nested table using path', function()
+        local data                 = dsyncro.new()
+        data['class']              = {}
+        data['class']['student']   = {}
+        data['class.student.name'] = 'Waleed'
+        assert.is_equal(data['class']['student']['name'], 'Waleed')
+    end)
+
+    it('should be able to set value using path', function()
+        local data          = dsyncro.new()
+        data['person.name'] = 'Waleed'
+        assert.is_equal(data['person']['name'], 'Waleed')
+    end)
+
 end)

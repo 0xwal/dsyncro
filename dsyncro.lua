@@ -3,8 +3,17 @@
 --- DateTime: 30/12/2021 3:54 PM
 ---
 
-local dsyncroMT   = {}
-dsyncro           = {}
+local dsyncroMT = {}
+dsyncro         = {}
+
+local function explode(string, sep)
+    sep     = sep or '%s'
+    local t = {}
+    for str in string.gmatch(string, "([^" .. sep .. "]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
 
 local function invoke_watcher_recursively(t, k)
     local w = t.__watchers[k]
@@ -23,11 +32,11 @@ end
 local function createChildFor(key, parent, items)
     local newT = dsyncro.new()
     for k, v in ipairs(items) do
-        newT[k] = v
+        newT.__store[k] = v
     end
 
     for k, v in pairs(items) do
-        newT[k] = v
+        newT.__store[k] = v
     end
 
     rawset(newT, '__parent', parent)
@@ -40,6 +49,25 @@ dsyncroMT.__newindex = function(t, key, value)
     if type(key) == 'string' and key:find('@') then
         local actualKey         = string.gsub(key, '@', '')
         t.__watchers[actualKey] = value
+        return
+    end
+
+    if type(key) == 'string' and key:find('%.') then
+        local keys    = explode(key, '.')
+        local target  = t
+        local lastKey = keys[#keys]
+        for _, k in ipairs(keys) do
+            if k == lastKey then
+                break
+            end
+
+            if not target[k] then
+                target[k] = createChildFor(k, t, {})
+            end
+
+            target = target[k]
+        end
+        target[lastKey] = value
         return
     end
 

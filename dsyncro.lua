@@ -6,7 +6,7 @@
 local dsyncroMT = {}
 dsyncro         = {}
 
-local function explode(string, sep)
+local function explode_string(string, sep)
     sep     = sep or '%s'
     local t = {}
     for str in string.gmatch(string, "([^" .. sep .. "]+)") do
@@ -29,7 +29,15 @@ local function invoke_watcher_recursively(t, k)
     invoke_watcher_recursively(t.__parent, t.__parentName)
 end
 
-local function createChildFor(key, parent, items)
+local function reverse(t)
+    local out = {}
+    for i = #t, 1, -1 do
+        table.insert(out, t[i])
+    end
+    return out
+end
+
+local function create_child_for(key, parent, items)
     local newT = dsyncro.new()
     for k, v in ipairs(items) do
         newT.__store[k] = v
@@ -45,66 +53,78 @@ local function createChildFor(key, parent, items)
     return newT
 end
 
-dsyncroMT.__newindex = function(t, key, value)
-    if type(key) == 'string' and key:find('@') then
-        local actualKey         = string.gsub(key, '@', '')
-        t.__watchers[actualKey] = value
-        return
-    end
+local function has_watcher_modifier(key)
+    return type(key) == 'string' and key:find('@')
+end
 
-    if type(key) == 'string' and key:find('%.') then
-        local keys    = explode(key, '.')
-        local target  = t
-        local lastKey = keys[#keys]
-        for _, k in ipairs(keys) do
-            if k == lastKey then
-                break
-            end
+local function has_full_path(key)
+    return type(key) == 'string' and key:find('%.')
+end
 
-            if not target[k] then
-                target[k] = createChildFor(k, t, {})
-            end
-
-            target = target[k]
+local function get_target_from_full_path(root, key)
+    local keys    = explode_string(key, '.')
+    local target  = root
+    local lastKey = keys[#keys]
+    for _, k in ipairs(keys) do
+        if k == lastKey then
+            break
         end
-        target[lastKey] = value
+
+        if not target[k] then
+            target[k] = create_child_for(k, root, {})
+        end
+
+        target = target[k]
+    end
+    return lastKey, target
+end
+
+local function has_silent_modifier(key)
+    return string.find(key, '^-') ~= nil
+end
+
+local function sanitize_chars_from_string(key, char)
+    return string.gsub(key, char, '')
+end
+
+function dsyncroMT:__newindex(key, value)
+    if has_watcher_modifier(key) then
+        local actualKey            = sanitize_chars_from_string(key, '@')
+        self.__watchers[actualKey] = value
         return
     end
 
-    local shouldBeSilent = string.find(key, '^-') ~= nil
+    if has_full_path(key) then
+        local targetKey, target = get_target_from_full_path(self, key)
+        target[targetKey]       = value
+        return
+    end
+
+    local shouldBeSilent = has_silent_modifier(key)
 
     if shouldBeSilent then
-        key = string.gsub(key, '-', '')
+        key = sanitize_chars_from_string(key, '%-')
     end
 
     if type(value) == 'table' then
-        local newT = createChildFor(key, t, value)
-        value      = newT
+        value = create_child_for(key, self, value)
     end
 
     if type(key) ~= 'number' then
-        t.__store[key] = value
+        self.__store[key] = value
     else
-        table.insert(t.__store, value)
+        table.insert(self.__store, value)
     end
 
     if not shouldBeSilent then
-        t:_invokeSetCallbacks(key, value)
+        self:_invokeSetCallbacks(key, value)
     end
 
-    invoke_watcher_recursively(t, key)
+    invoke_watcher_recursively(self, key)
 end
 
 function dsyncroMT:onKeySet(callback)
     self.__settersCallback[tostring(callback)] = callback
-end
-
-local function reverse(t)
-    local out = {}
-    for i = #t, 1, -1 do
-        table.insert(out, t[i])
-    end
-    return out
 end
 
 function dsyncroMT:_invokeSetCallbacks(key, value)

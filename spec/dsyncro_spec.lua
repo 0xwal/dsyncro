@@ -290,8 +290,10 @@ describe('dsyncro set handler', function()
         dsyncro:onKeySet(onSetSpy)
         dsyncro['students'] = {}
         table.insert(dsyncro['students'], 'waleed')
-        assert.spy(onSetSpy).was_called(2)
+        table.insert(dsyncro['students'], 'bisoon')
+        assert.spy(onSetSpy).was_called(3)
         assert.spy(onSetSpy).was_called_with(match._, 'students.1', 'waleed')
+        assert.spy(onSetSpy).was_called_with(match._, 'students.2', 'bisoon')
     end)
 
     it('should invoke the handler with instance', function()

@@ -30,7 +30,7 @@ local function iterate_instances_to_root(instance)
         if not instanceToReturn then
             return
         end
-        currentInstance = instanceToReturn.__parent
+        currentInstance = rawget(instanceToReturn, '__parent')
         return instanceToReturn
     end
 end
@@ -172,14 +172,25 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
     end
 end
 
+function dsyncroMT:__index(key)
+    local value = self.__store[key] or dsyncroMT[key]
+    if value then
+        return value
+    end
+
+    for instance in iterate_instances_to_root(self) do
+        value = rawget(rawget(instance, '__store'), key)
+        if value then
+            return value
+        end
+    end
+end
+
 function dsyncro.new()
-    local o = { dsyncro = true }
+    local o             = { dsyncro = true }
     o.__watchers        = {}
     o.__store           = {}
     o.__settersCallback = {}
     setmetatable(o, dsyncroMT)
-    dsyncroMT.__index = function(t, k)
-        return t.__store[k] or dsyncroMT[k]
-    end
     return o
 end

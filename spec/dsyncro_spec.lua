@@ -89,6 +89,20 @@ describe('dsyncro', function()
         assert.is_equal('player-name-2', playerList['player-1'].friends[1].name)
     end)
 
+    it('should traverse key to parent if not exist in child', function()
+        local dsyncro              = dsyncro.new()
+        dsyncro['parent']          = { name = 'the-parent' }
+        dsyncro['parent']['child'] = {}
+        assert.is_equal('the-parent', dsyncro['parent']['child'].name)
+    end)
+
+    it('should prioritize key that exist in the instance', function()
+        local dsyncro              = dsyncro.new()
+        dsyncro['parent']          = { name = 'the-parent' }
+        dsyncro['parent']['child'] = { name = 'the-child' }
+        assert.is_equal('the-child', dsyncro['parent']['child'].name)
+    end)
+
     describe('watcher', function()
         it('should be able to add watcher to a property', function()
             local dsyncro    = dsyncro.new()

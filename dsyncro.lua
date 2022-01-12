@@ -178,6 +178,10 @@ function dsyncroMT:__index(key)
         return value
     end
 
+    if key == '__parent' or key == '__parentName' then
+        return
+    end
+
     for instance in iterate_instances_to_root(self) do
         value = rawget(rawget(instance, '__store'), key)
         if value then

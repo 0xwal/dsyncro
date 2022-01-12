@@ -103,6 +103,15 @@ describe('dsyncro', function()
         assert.is_equal('the-child', dsyncro['parent']['child'].name)
     end)
 
+    it('should not iterate only on instance user items', function()
+        local dsyncro = dsyncro.new()
+        local spy     = spy()
+        for _, _ in pairs(dsyncro) do
+            spy()
+        end
+        assert.spy(spy).was_not_called()
+    end)
+
     describe('watcher', function()
         it('should be able to add watcher to a property', function()
             local dsyncro    = dsyncro.new()

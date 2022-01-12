@@ -190,6 +190,10 @@ function dsyncroMT:__index(key)
     end
 end
 
+function dsyncroMT:__pairs()
+    return next, self.__store
+end
+
 function dsyncro.new()
     local o             = { dsyncro = true }
     o.__watchers        = {}

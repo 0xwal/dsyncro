@@ -333,6 +333,11 @@ describe('dsyncro set handler', function()
 end)
 
 describe('set value using path', function()
+
+    before_each(function()
+        hard_require('dsyncro')
+    end)
+
     it('should be able to set value using path', function()
         local data          = dsyncro.new()
         data['person']      = {}
@@ -354,4 +359,20 @@ describe('set value using path', function()
         assert.is_equal(data['person']['name'], 'Waleed')
     end)
 
+    it('should convert key to number when number is last', function()
+        local data         = dsyncro.new()
+        data['students']   = {}
+        data['students.1'] = 'Waleed'
+
+        assert.is_equal('Waleed', data['students'][1])
+    end)
+
+    it('should convert key to number when number in the middle', function()
+        local data              = dsyncro.new()
+
+        data['students']        = {}
+        data['students.1.name'] = 'Waleed'
+
+        assert.is_equal('Waleed', data['students'][1]['name'])
+    end)
 end)

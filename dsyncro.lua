@@ -77,8 +77,13 @@ local function get_target_from_full_path(root, path)
     local lastKey   = keys[keysCount]
     for i = 1, keysCount do
         local key = keys[i]
+
         if key == lastKey then
             break
+        end
+
+        if tonumber(key) then
+            key = tonumber(key)
         end
 
         if not target[key] then
@@ -87,6 +92,11 @@ local function get_target_from_full_path(root, path)
 
         target = target[key]
     end
+
+    if tonumber(lastKey) then
+        lastKey = tonumber(lastKey)
+    end
+
     return lastKey, target
 end
 
@@ -120,11 +130,7 @@ function dsyncroMT:__newindex(key, value)
         value = create_child_for(key, self, value)
     end
 
-    if type(key) ~= 'number' then
-        self.__store[key] = value
-    else
-        table.insert(self.__store, value)
-    end
+    self.__store[key] = value
 
     if not self.__silent then
         self:_invokeSetCallbacks(key, value)

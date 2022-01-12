@@ -194,6 +194,10 @@ function dsyncroMT:__pairs()
     return next, self.__store
 end
 
+function dsyncroMT:__len()
+    return #self.__store
+end
+
 function dsyncro.new()
     local o             = { dsyncro = true }
     o.__watchers        = {}

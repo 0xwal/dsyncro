@@ -112,6 +112,14 @@ describe('dsyncro', function()
         assert.spy(spy).was_not_called()
     end)
 
+    it('should be able to get the length of an array', function()
+        local dsyncro       = dsyncro.new()
+        dsyncro['students'] = {}
+        table.insert(dsyncro['students'], 'Waleed')
+        table.insert(dsyncro['students'], 'BISOON')
+        assert.is_equal(2, #dsyncro['students'])
+    end)
+
     describe('watcher', function()
         it('should be able to add watcher to a property', function()
             local dsyncro    = dsyncro.new()

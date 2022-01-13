@@ -23,45 +23,6 @@ local function reverse(t)
     return out
 end
 
-local function iterate_instances_to_root(instance)
-    local currentInstance = instance
-    return function()
-        local instanceToReturn = currentInstance
-        if not instanceToReturn then
-            return
-        end
-        currentInstance = rawget(instanceToReturn, '__parent')
-        return instanceToReturn
-    end
-end
-
-local function invoke_watcher_recursively(t, k)
-    local w = t.__watchers[k]
-
-    if w then
-        w(t[k], t)
-    end
-
-    if not t.__parent then
-        return
-    end
-
-    invoke_watcher_recursively(t.__parent, t.__parentName)
-end
-
-local function create_child_for(key, parent, items)
-    local newT = dsyncro.new()
-
-    for k, v in pairs(items) do
-        newT[k] = v
-    end
-
-    rawset(newT, '__parent', parent)
-    rawset(newT, '__parentName', key)
-
-    return newT
-end
-
 local function has_watcher_modifier(key)
     return type(key) == 'string' and key:find('@')
 end
@@ -87,7 +48,7 @@ local function get_target_from_full_path(root, path)
         end
 
         if not target[key] then
-            target[key] = create_child_for(key, root, {})
+            target[key] = target:createChild(key, {})
         end
 
         target = target[key]
@@ -127,41 +88,80 @@ function dsyncroMT:__newindex(key, value)
     end
 
     if type(value) == 'table' and not value.dsyncro then
-        value = create_child_for(key, self, value)
+        value = self:createChild(key, value)
     end
 
     self.__store[key] = value
 
     if not self.__silent then
-        self:_invokeSetCallbacks(key, value)
+        self:invokeSetCallbacks(key, value)
     end
 
-    invoke_watcher_recursively(self, key)
+    self:invokeWatchers(key)
 end
 
 function dsyncroMT:onKeySet(callback)
     self.__settersCallback[tostring(callback)] = callback
 end
 
-function dsyncroMT:_invokeSetCallbacks(key, value)
-    local setHandlers = {}
-    local path        = { key }
+function dsyncroMT:traverseToRoot()
+    local currentInstance = self
+    return function()
+        local instanceToReturn = currentInstance
+        if not instanceToReturn then
+            return
+        end
+        currentInstance = rawget(instanceToReturn, '__parent')
+        return instanceToReturn
+    end
+end
 
-    for instance in iterate_instances_to_root(self) do
+function dsyncroMT:invokeWatchers(key)
+    local w = self.__watchers[key]
+
+    if w then
+        w(self[key], self)
+    end
+
+    if not self.__parent then
+        return
+    end
+
+    self.__parent:invokeWatchers(self.__key)
+end
+
+function dsyncroMT:createChild(key, items)
+    local newT = dsyncro.new()
+
+    for k, v in pairs(items) do
+        newT[k] = v
+    end
+
+    rawset(newT, '__parent', self)
+    rawset(newT, '__key', key)
+
+    return newT
+end
+
+function dsyncroMT:invokeSetCallbacks(key, value)
+    local handlers = {}
+    local path     = { key }
+
+    for instance in self:traverseToRoot() do
         if instance.__silent then
             return
         end
 
         for _, setterCallback in pairs(instance.__settersCallback) do
-            table.insert(setHandlers, setterCallback)
+            table.insert(handlers, setterCallback)
         end
 
-        table.insert(path, instance.__parentName)
+        table.insert(path, instance.__key)
     end
 
     path = table.concat(reverse(path), '.')
 
-    if #setHandlers < 1 then
+    if #handlers < 1 then
         return
     end
 
@@ -173,7 +173,7 @@ function dsyncroMT:_invokeSetCallbacks(key, value)
         instance = self
     end
 
-    for _, setter in pairs(setHandlers) do
+    for _, setter in pairs(handlers) do
         setter(instance, path, value)
     end
 end
@@ -184,11 +184,11 @@ function dsyncroMT:__index(key)
         return value
     end
 
-    if key == '__parent' or key == '__parentName' then
+    if key == '__parent' or key == '__key' then
         return
     end
 
-    for instance in iterate_instances_to_root(self) do
+    for instance in self:traverseToRoot() do
         value = rawget(rawget(instance, '__store'), key)
         if value then
             return value

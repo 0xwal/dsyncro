@@ -87,7 +87,7 @@ function dsyncroMT:__newindex(key, value)
         return
     end
 
-    if type(value) == 'table' and not value.dsyncro then
+    if type(value) == 'table' and not value.__dsyncro then
         value = self:createChild(key, value)
     end
 
@@ -167,7 +167,7 @@ function dsyncroMT:invokeSetCallbacks(key, value)
 
     local instance
 
-    if type(value) == 'table' and value.dsyncro then
+    if type(value) == 'table' and value.__dsyncro then
         instance = value
     else
         instance = self
@@ -182,7 +182,7 @@ function dsyncroMT:rawItems()
     local rawItems = {}
     local items    = self.__store
     for key, value in pairs(items) do
-        if type(value) == 'table' and value.dsyncro then
+        if type(value) == 'table' and value.__dsyncro then
             rawItems[key] = value:rawItems()
         else
             rawItems[key] = value
@@ -218,7 +218,7 @@ function dsyncroMT:__len()
 end
 
 function dsyncro.new()
-    local o             = { dsyncro = true }
+    local o = { __dsyncro = true }
     o.__watchers        = {}
     o.__store           = {}
     o.__settersCallback = {}

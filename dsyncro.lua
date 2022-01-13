@@ -178,6 +178,19 @@ function dsyncroMT:invokeSetCallbacks(key, value)
     end
 end
 
+function dsyncroMT:rawItems()
+    local rawItems = {}
+    local items    = self.__store
+    for key, value in pairs(items) do
+        if type(value) == 'table' and value.dsyncro then
+            rawItems[key] = value:rawItems()
+        else
+            rawItems[key] = value
+        end
+    end
+    return rawItems
+end
+
 function dsyncroMT:__index(key)
     local value = self.__store[key] or dsyncroMT[key]
     if value then

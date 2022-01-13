@@ -120,6 +120,61 @@ describe('dsyncro', function()
         assert.is_equal(2, #dsyncro['students'])
     end)
 
+    describe('rawItems', function()
+        local dsyncroInstance
+
+        before_each(function()
+            dsyncroInstance = dsyncro.new()
+        end)
+
+        it('exist', function()
+            assert.is_function(dsyncroInstance.rawItems)
+        end)
+
+        it('should return items without returning the instance itself', function()
+            dsyncroInstance['name']    = 'Waleed'
+            dsyncroInstance['country'] = 'ksa'
+            assert.are_same({ name = 'Waleed', country = 'ksa' }, dsyncroInstance:rawItems())
+        end)
+
+        it('should return items for nested tables', function()
+            local githubObj            = {
+                repositories = {
+                    HelloWorld = {
+                        desc  = 'hello world',
+                        files = {
+                            'file1',
+                            'file2'
+                        }
+                    },
+                    demo       = {
+                        desc  = 'code demo',
+                        files = {
+                            'file1',
+                            'file2',
+                            'file3'
+                        }
+                    }
+                },
+                followers    = 50,
+                following    = 30,
+                bio          = {
+                    name  = 'Waleed Al7arbi',
+                    url   = 'http://github.com/0xWaleed',
+                    email = 'imwaleed@outlook.sa'
+                }
+            }
+            dsyncroInstance['name']    = 'Waleed'
+            dsyncroInstance['address'] = { country = 'ksa', code = 966 }
+            dsyncroInstance['github']  = githubObj
+            assert.are_same({
+                name    = 'Waleed',
+                address = { country = 'ksa', code = 966 },
+                github  = githubObj
+            }, dsyncroInstance:rawItems())
+        end)
+    end)
+
     describe('watcher', function()
         it('should be able to add watcher to a property', function()
             local dsyncro    = dsyncro.new()

@@ -165,16 +165,8 @@ function dsyncroMT:invokeSetCallbacks(key, value)
         return
     end
 
-    local instance
-
-    if dsyncro.classOf(value) then
-        instance = value
-    else
-        instance = self
-    end
-
     for _, setter in pairs(handlers) do
-        setter(instance, path, value)
+        setter(self, path, value)
     end
 end
 

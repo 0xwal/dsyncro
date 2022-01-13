@@ -356,10 +356,22 @@ describe('dsyncro set handler', function()
         local onSetSpy = spy()
         dsyncro:onKeySet(onSetSpy)
         dsyncro['students'] = {}
-        assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students', match.any())
+        assert.spy(onSetSpy).was_called_with(dsyncro, 'students', dsyncro['students'])
         table.insert(dsyncro['students'], 'waleed')
         assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students.1', 'waleed')
         assert.spy(onSetSpy).was_called(2)
+    end)
+
+    it('should invoke the handler with instance that correspond to instance when value is table', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = stub()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['students']    = {}
+        dsyncro['students'][1] = { name = 'Waleed' }
+        assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students.1', match.object_contain { name = 'Waleed' })
+        dsyncro['students'][2] = { name = 'BISOON' }
+        assert.spy(onSetSpy).was_called_with(dsyncro['students'], 'students.2', match.object_contain { name = 'BISOON' })
+        assert.spy(onSetSpy).was_called(3)
     end)
 
     it('should not invoke the handler when using the silent modifier with full path', function()

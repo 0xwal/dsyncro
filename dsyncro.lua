@@ -13,13 +13,13 @@ local watchMT    = {
 
 local accessorMT = {
     __newindex = function(t, k, v)
-        t.__dsyncroInstance.__accessors[k] = v
+        t.__accessors[k] = v
     end,
 }
 
 local mutatorMT  = {
     __newindex = function(t, k, v)
-        t.__dsyncroInstance.__mutators[k] = v
+        t.__mutators[k] = v
     end,
 }
 
@@ -37,15 +37,15 @@ local function watch(dsyncroInstance)
 end
 
 local function accessor(dsyncroInstance)
-    local o             = {}
-    o.__dsyncroInstance = dsyncroInstance
+    local o       = {}
+    o.__accessors = dsyncroInstance.__accessors
     setmetatable(o, accessorMT)
     return o
 end
 
 local function mutator(dsyncroInstance)
-    local o             = {}
-    o.__dsyncroInstance = dsyncroInstance
+    local o      = {}
+    o.__mutators = dsyncroInstance.__mutators
     setmetatable(o, mutatorMT)
     return o
 end
@@ -124,14 +124,14 @@ end
 
 function dsyncroMT:__newindex(key, value)
     if has_watcher_modifier(key) then
-        local actualKey            = sanitize_chars_from_string(key, '@')
-        self.__watchers[actualKey] = value
+        local actualKey                       = sanitize_chars_from_string(key, '@')
+        rawget(self, '__watchers')[actualKey] = value
         return
     end
 
     if has_silent_modifier(key) then
-        key           = sanitize_chars_from_string(key, '%-')
-        self.__silent = true
+        key = sanitize_chars_from_string(key, '%-')
+        rawset(self, '__silent', true)
     end
 
     if has_full_path(key) then
@@ -144,14 +144,15 @@ function dsyncroMT:__newindex(key, value)
         value = self:createChild(key, value)
     end
 
-    if self.__store[key] == value then
+    local store = rawget(self, '__store')
+    if store[key] == value then
         return
     end
 
-    local mutatorFunc = self.__mutators[key]
-    self.__store[key] = mutatorFunc and mutatorFunc(value) or value
+    local mutatorFunc = rawget(self, '__mutators')[key]
+    store[key]        = mutatorFunc and mutatorFunc(value) or value
 
-    if not self.__silent then
+    if not rawget(self, '__silent') then
         self:invokeSetCallbacks(key, value)
     end
 
@@ -159,7 +160,7 @@ function dsyncroMT:__newindex(key, value)
 end
 
 function dsyncroMT:onKeySet(callback)
-    self.__settersCallback[tostring(callback)] = callback
+    rawget(self, '__settersCallback')[tostring(callback)] = callback
 end
 
 function dsyncroMT:traverseToRoot()
@@ -175,17 +176,18 @@ function dsyncroMT:traverseToRoot()
 end
 
 function dsyncroMT:invokeWatchers(key)
-    local w = self.__watchers[key]
+    local w = rawget(self, '__watchers')[key]
 
     if w then
         w(self[key], self)
     end
 
-    if not self.__parent then
+    local parent = rawget(self, '__parent')
+    if not parent then
         return
     end
 
-    self.__parent:invokeWatchers(self.__key)
+    parent:invokeWatchers(rawget(self, '__key'))
 end
 
 function dsyncroMT:createChild(key, items)
@@ -206,15 +208,17 @@ function dsyncroMT:invokeSetCallbacks(key, value)
     local path     = { key }
 
     for instance in self:traverseToRoot() do
-        if instance.__silent then
+        if rawget(instance, '__silent') then
             return
         end
 
-        for _, setterCallback in pairs(instance.__settersCallback) do
+        local callbacks = rawget(instance, '__settersCallback')
+
+        for _, setterCallback in pairs(callbacks) do
             table.insert(handlers, setterCallback)
         end
 
-        table.insert(path, instance.__key)
+        table.insert(path, rawget(instance, '__key'))
     end
 
     path = table.concat(reverse(path), '.')
@@ -230,7 +234,7 @@ end
 
 function dsyncroMT:rawItems()
     local rawItems = {}
-    local items    = self.__store
+    local items    = rawget(self, '__store')
     for key, value in pairs(items) do
         if dsyncro.classOf(value) then
             rawItems[key] = value:rawItems()
@@ -259,13 +263,13 @@ function dsyncroMT:__index(key)
         return rawget(self, '__sil')
     end
 
-    local value = self.__store[key]
+    local value = rawget(self, '__store')[key]
 
     if value then
-        if not self.__accessors[key] then
+        if not rawget(self, '__accessors')[key] then
             return value
         end
-        return self.__accessors[key](value)
+        return rawget(self, '__accessors')[key](value)
     end
 
     value = dsyncroMT[key]
@@ -288,11 +292,11 @@ function dsyncroMT:__index(key)
 end
 
 function dsyncroMT:__pairs()
-    return next, self.__store
+    return next, rawget(self, '__store')
 end
 
 function dsyncroMT:__len()
-    return #self.__store
+    return #rawget(self, '__store')
 end
 
 function dsyncro.new()

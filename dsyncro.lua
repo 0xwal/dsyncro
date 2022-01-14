@@ -23,6 +23,12 @@ local mutatorMT  = {
     end,
 }
 
+local silentMT   = {
+    __newindex = function(t, k, v)
+        t.__dsyncroInstance['-' .. k] = v
+    end,
+}
+
 local function watch(dsyncroInstance)
     local o             = {}
     o.__dsyncroInstance = dsyncroInstance
@@ -41,6 +47,13 @@ local function mutator(dsyncroInstance)
     local o             = {}
     o.__dsyncroInstance = dsyncroInstance
     setmetatable(o, mutatorMT)
+    return o
+end
+
+local function silent(dsyncroInstance)
+    local o             = {}
+    o.__dsyncroInstance = dsyncroInstance
+    setmetatable(o, silentMT)
     return o
 end
 
@@ -242,6 +255,10 @@ function dsyncroMT:__index(key)
         return rawget(self, '__mutator')
     end
 
+    if key == 'silent' then
+        return rawget(self, '__sil')
+    end
+
     local value = self.__store[key]
 
     if value then
@@ -288,6 +305,7 @@ function dsyncro.new()
     o.__watch           = watch(o)
     o.__accessor        = accessor(o)
     o.__mutator         = mutator(o)
+    o.__sil             = silent(o)
     setmetatable(o, dsyncroMT)
     return o
 end

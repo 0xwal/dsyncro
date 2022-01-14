@@ -350,6 +350,15 @@ describe('dsyncro set handler', function()
         assert.is_equal('Waleed', dsyncro['name'])
     end)
 
+    it('should able to set a value without invoking callback using silent property', function()
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro.silent['name'] = 'Waleed'
+        assert.spy(onSetSpy).was_not_called()
+        assert.is_equal('Waleed', dsyncro['name'])
+    end)
+
     it('should invoke the handler with full key path', function()
         local dsyncro  = dsyncro.new()
         local onSetSpy = spy()

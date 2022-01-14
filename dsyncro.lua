@@ -4,7 +4,21 @@
 ---
 
 local dsyncroMT = {}
-dsyncro         = {}
+
+local watchMT   = {
+    __newindex = function(t, k, v)
+        t.__dsyncroInstance['@' .. k] = v
+    end,
+}
+
+local function watch(dsyncroInstance)
+    local o             = {}
+    o.__dsyncroInstance = dsyncroInstance
+    setmetatable(o, watchMT)
+    return o
+end
+
+dsyncro = {}
 
 local function explode_string(string, sep)
     sep     = sep or '%s'
@@ -184,6 +198,11 @@ function dsyncroMT:rawItems()
 end
 
 function dsyncroMT:__index(key)
+
+    if key == 'watch' then
+        return self.__watch
+    end
+
     local value = self.__store[key] or dsyncroMT[key]
     if value then
         return value
@@ -199,6 +218,7 @@ function dsyncroMT:__index(key)
             return value
         end
     end
+
 end
 
 function dsyncroMT:__pairs()
@@ -214,6 +234,7 @@ function dsyncro.new()
     o.__watchers        = {}
     o.__store           = {}
     o.__settersCallback = {}
+    o.__watch           = watch(o)
     setmetatable(o, dsyncroMT)
     return o
 end

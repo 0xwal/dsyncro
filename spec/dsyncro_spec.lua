@@ -260,10 +260,10 @@ describe('dsyncro', function()
         end)
 
         it('should execute watcher for init value table as dsyncro instance', function()
-            local dsyncro        = dsyncro.new()
-            local watcherSpy     = spy()
-            dsyncro['@students'] = watcherSpy
-            dsyncro['students']  = { t = 99 }
+            local dsyncro          = dsyncro.new()
+            local watcherSpy       = spy()
+            dsyncro.watch.students = watcherSpy
+            dsyncro['students']    = { t = 99 }
             assert.spy(watcherSpy).was_called(1)
             assert.spy(watcherSpy).was_called_with(match.object_contain({ __store = { t = 99 } }), match.any())
         end)
@@ -278,6 +278,17 @@ describe('dsyncro', function()
             data['class']['students']['bisoon'] = true
             assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any())
             assert.spy(watcherSpy).was_called(3)
+        end)
+
+        it('should able to register a watcher using instance.watch.variable', function()
+            local dsyncro      = dsyncro.new()
+            local watcherSpy   = spy()
+            dsyncro.watch.name = watcherSpy
+            dsyncro.name       = 'waleed'
+            assert.spy(watcherSpy).was_called_with('waleed', match.any())
+            dsyncro.name = 'Waleed'
+            assert.spy(watcherSpy).was_called_with('Waleed', match.any())
+            assert.spy(watcherSpy).was_called(2)
         end)
     end)
 end)

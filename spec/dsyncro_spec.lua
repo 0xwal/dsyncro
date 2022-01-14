@@ -303,7 +303,16 @@ describe('dsyncro', function()
         end)
     end)
 
-
+    describe('mutator', function()
+        it('should allow to add mutator', function()
+            local data           = dsyncro.new()
+            data.mutator['name'] = function(value)
+                return string.upper(value)
+            end
+            data['name']         = 'waleed'
+            assert.is_equal('WALEED', data['name'])
+        end)
+    end)
 end)
 
 describe('dsyncro set handler', function()

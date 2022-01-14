@@ -17,6 +17,12 @@ local accessorMT = {
     end,
 }
 
+local mutatorMT  = {
+    __newindex = function(t, k, v)
+        t.__dsyncroInstance.__mutators[k] = v
+    end,
+}
+
 local function watch(dsyncroInstance)
     local o             = {}
     o.__dsyncroInstance = dsyncroInstance
@@ -28,6 +34,13 @@ local function accessor(dsyncroInstance)
     local o             = {}
     o.__dsyncroInstance = dsyncroInstance
     setmetatable(o, accessorMT)
+    return o
+end
+
+local function mutator(dsyncroInstance)
+    local o             = {}
+    o.__dsyncroInstance = dsyncroInstance
+    setmetatable(o, mutatorMT)
     return o
 end
 
@@ -118,7 +131,8 @@ function dsyncroMT:__newindex(key, value)
         value = self:createChild(key, value)
     end
 
-    self.__store[key] = value
+    local mutatorFunc = self.__mutators[key]
+    self.__store[key] = mutatorFunc and mutatorFunc(value) or value
 
     if not self.__silent then
         self:invokeSetCallbacks(key, value)
@@ -213,11 +227,15 @@ end
 function dsyncroMT:__index(key)
 
     if key == 'watch' then
-        return self.__watch
+        return rawget(self, '__watch')
     end
 
     if key == 'accessor' then
-        return self.__accessor
+        return rawget(self, '__accessor')
+    end
+
+    if key == 'mutator' then
+        return rawget(self, '__mutator')
     end
 
     local value = self.__store[key]
@@ -262,8 +280,10 @@ function dsyncro.new()
     o.__store           = {}
     o.__settersCallback = {}
     o.__accessors       = {}
+    o.__mutators        = {}
     o.__watch           = watch(o)
     o.__accessor        = accessor(o)
+    o.__mutator         = mutator(o)
     setmetatable(o, dsyncroMT)
     return o
 end

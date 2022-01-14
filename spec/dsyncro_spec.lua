@@ -291,6 +291,19 @@ describe('dsyncro', function()
             assert.spy(watcherSpy).was_called(2)
         end)
     end)
+
+    describe('accessor', function()
+        it('should allow to add accessor', function()
+            local data            = dsyncro.new()
+            data.accessor['name'] = function(value)
+                return string.upper(value)
+            end
+            data['name']          = 'waleed'
+            assert.is_equal('WALEED', data['name'])
+        end)
+    end)
+
+
 end)
 
 describe('dsyncro set handler', function()

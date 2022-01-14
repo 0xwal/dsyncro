@@ -3,11 +3,17 @@
 --- DateTime: 30/12/2021 3:54 PM
 ---
 
-local dsyncroMT = {}
+local dsyncroMT  = {}
 
-local watchMT   = {
+local watchMT    = {
     __newindex = function(t, k, v)
         t.__dsyncroInstance['@' .. k] = v
+    end,
+}
+
+local accessorMT = {
+    __newindex = function(t, k, v)
+        t.__dsyncroInstance.__accessors[k] = v
     end,
 }
 
@@ -15,6 +21,13 @@ local function watch(dsyncroInstance)
     local o             = {}
     o.__dsyncroInstance = dsyncroInstance
     setmetatable(o, watchMT)
+    return o
+end
+
+local function accessor(dsyncroInstance)
+    local o             = {}
+    o.__dsyncroInstance = dsyncroInstance
+    setmetatable(o, accessorMT)
     return o
 end
 
@@ -203,7 +216,21 @@ function dsyncroMT:__index(key)
         return self.__watch
     end
 
-    local value = self.__store[key] or dsyncroMT[key]
+    if key == 'accessor' then
+        return self.__accessor
+    end
+
+    local value = self.__store[key]
+
+    if value then
+        if not self.__accessors[key] then
+            return value
+        end
+        return self.__accessors[key](value)
+    end
+
+    value = dsyncroMT[key]
+
     if value then
         return value
     end
@@ -234,7 +261,9 @@ function dsyncro.new()
     o.__watchers        = {}
     o.__store           = {}
     o.__settersCallback = {}
+    o.__accessors       = {}
     o.__watch           = watch(o)
+    o.__accessor        = accessor(o)
     setmetatable(o, dsyncroMT)
     return o
 end

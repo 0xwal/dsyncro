@@ -131,6 +131,10 @@ function dsyncroMT:__newindex(key, value)
         value = self:createChild(key, value)
     end
 
+    if self.__store[key] == value then
+        return
+    end
+
     local mutatorFunc = self.__mutators[key]
     self.__store[key] = mutatorFunc and mutatorFunc(value) or value
 

@@ -330,17 +330,16 @@ describe('dsyncro set handler', function()
         assert.spy(onSetSpy).was_called_with(match._, 'name', 'Waleed')
     end)
 
-    --todo required for later, we don't want to execute watcher for uncached value
-    --it('should not invoke when value is not changed', function()
-    --    local value    = 'Waleed'
-    --    local dsyncro  = dsyncro.new()
-    --    local onSetSpy = spy()
-    --    dsyncro:onKeySet(onSetSpy)
-    --    dsyncro['name'] = value
-    --    dsyncro['name'] = value
-    --    assert.spy(onSetSpy).was_called(1)
-    --    assert.spy(onSetSpy).was_called_with('name', 'Waleed')
-    --end)
+    it('should not invoke when value is not changed', function()
+        local value    = 'Waleed'
+        local dsyncro  = dsyncro.new()
+        local onSetSpy = spy()
+        dsyncro:onKeySet(onSetSpy)
+        dsyncro['name'] = value
+        dsyncro['name'] = value
+        assert.spy(onSetSpy).was_called(1)
+        assert.spy(onSetSpy).was_called_with(match.any(), 'name', 'Waleed')
+    end)
 
     it('should able to set a value without invoking callback', function()
         local dsyncro  = dsyncro.new()

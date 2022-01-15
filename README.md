@@ -5,12 +5,9 @@ A single file declarative library to extend a table and make it reactive to chan
 ## Motivation
 
 * I wanted a way to update values in FiveM server side and the effect should be carried out to 
-  
-  client without creating an event in both client/server to just synchronize the data
-
-* I wanted a way to update values in FiveM server side and the effect should be carried out to 
-  
-  client without creating an event in both client/server to just synchronize the data
+  client without creating an event in both client/server to just synchronize the data.
+* I want to have the ability to encapsulate logic for accessors and mutators to transform value on setting/getting them.
+* I want the table to be smart and aware of my needs/logic.
 
 ## Features
 

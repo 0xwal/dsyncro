@@ -1,12 +1,12 @@
 # Dsyncro
 
-A single file declarative library to extend a table and make it reactive to changes
+A single file declarative library to extend a table and make it reactive to changes.
 
 ## Motivation
 
 * I wanted a way to update values in FiveM server side and the effect should be carried out to 
   client without creating an event in both client/server to just synchronize the data.
-* I want to have the ability to encapsulate logic for accessors and mutators to transform value on setting/getting them.
+* I want to have the ability to encapsulate logic for accessors and mutators to transform value when setting/getting them.
 * I want the table to be smart and aware of my needs/logic.
 
 ## Features
@@ -22,7 +22,7 @@ A single file declarative library to extend a table and make it reactive to chan
 
 #### Examples
 
-#### In this example I want to use dsyncro to synchronize data between server and client.
+#### In this example I want to use *dsyncro* to synchronize data between server and client.
 
 ```lua
 local player = dsyncro.new()
@@ -113,7 +113,7 @@ user.config.telemetry = false
 
 ### Mutators
 
-With mutators, you can transform value on change
+With *mutators*, you can transform value on changes
 
 #### Examples
 
@@ -131,7 +131,7 @@ print(data.password) -- hashed
 
 ### Accessors
 
-With accessors, you can transform value on change
+With *accessors*, you can transform value on changes
 
 #### Examples
 
@@ -148,6 +148,6 @@ end
 
 data.price = '12.8'
 
-print(data.price) -- price here is 12.8
-print(json.encode(data:rawItems())) -- now price in data is 1280
+print(data.price) -- 12.8
+print(json.encode(data:rawItems())) -- dumping data shows price as 1280
 ```

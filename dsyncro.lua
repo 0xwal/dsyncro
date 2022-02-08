@@ -57,6 +57,14 @@ local function silent(dsyncroInstance)
     return o
 end
 
+local function has_silent_modifier(key)
+    return string.find(key, '^-') ~= nil
+end
+
+local function sanitize_chars_from_string(key, char)
+    return string.gsub(key, char, '')
+end
+
 dsyncro = {}
 
 local function explode_string(string, sep)
@@ -114,14 +122,6 @@ local function get_target_from_full_path(root, path)
     return lastKey, target
 end
 
-local function has_silent_modifier(key)
-    return string.find(key, '^-') ~= nil
-end
-
-local function sanitize_chars_from_string(key, char)
-    return string.gsub(key, char, '')
-end
-
 function dsyncroMT:__newindex(key, value)
     if has_watcher_modifier(key) then
         local actualKey                       = sanitize_chars_from_string(key, '@')
@@ -129,9 +129,18 @@ function dsyncroMT:__newindex(key, value)
         return
     end
 
+    local __silent = rawget(self, '__silent')
+
+    if self.__parent then
+        __silent = {}
+    end
+
     if has_silent_modifier(key) then
-        key = sanitize_chars_from_string(key, '%-')
-        rawset(self, '__silent', true)
+        key               = sanitize_chars_from_string(key, '%-')
+        local explodedKey = explode_string(key, '.')
+        for _, k in ipairs(explodedKey) do
+            __silent[k] = true
+        end
     end
 
     if has_full_path(key) then
@@ -152,7 +161,7 @@ function dsyncroMT:__newindex(key, value)
     local mutatorFunc = rawget(self, '__mutators')[key]
     store[key]        = mutatorFunc and mutatorFunc(value) or value
 
-    if not rawget(self, '__silent') then
+    if not __silent[key] then
         self:invokeSetCallbacks(key, value)
     end
 
@@ -208,7 +217,10 @@ function dsyncroMT:invokeSetCallbacks(key, value)
     local path     = { key }
 
     for instance in self:traverseToRoot() do
-        if rawget(instance, '__silent') then
+
+        local __silent = rawget(instance, '__silent')
+
+        if __silent[key] then
             return
         end
 
@@ -306,6 +318,7 @@ function dsyncro.new()
     o.__settersCallback = {}
     o.__accessors       = {}
     o.__mutators        = {}
+    o.__silent          = {}
     o.__watch           = watch(o)
     o.__accessor        = accessor(o)
     o.__mutator         = mutator(o)

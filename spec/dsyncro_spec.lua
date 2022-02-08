@@ -438,6 +438,48 @@ describe('dsyncro set handler', function()
         assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second', match.any())
         assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second.name', match.any())
     end)
+
+    it('should able silent only a field in a table without silencing  its siblings', function()
+        local data     = dsyncro.new()
+        local onSetSpy = spy()
+        data:onKeySet(onSetSpy)
+        data['students']         = {}
+        data['students']['-id']  = 1
+        data['students']['name'] = 'Waleed'
+        assert.spy(onSetSpy).was_called(2)
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students', match.any())
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students.name', 'Waleed')
+    end)
+
+    it('should not silent a field that previously silenced', function()
+        local data     = dsyncro.new()
+        local onSetSpy = spy()
+        data:onKeySet(onSetSpy)
+        data['students']         = {}
+        data['students']['-id']  = 1
+        data['students']['id']   = 2
+        data['students']['name'] = 'Waleed'
+        assert.spy(onSetSpy).was_called(3)
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students', match.any())
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students.name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any(), 'students.id', 2)
+    end)
+
+    it('should not silent a field that has a silenced parent', function()
+        local data     = dsyncro.new()
+        local onSetSpy = spy()
+        data:onKeySet(onSetSpy)
+        data['-student']        = {}
+        data['student']['name'] = 'BISOON'
+
+        data['student']['-id']  = 1
+        data['student']['name'] = 'Waleed'
+        data['student']['id']   = 2
+        assert.spy(onSetSpy).was_called(3)
+        assert.spy(onSetSpy).was_called_with(match.any(), 'student.name', 'BISOON')
+        assert.spy(onSetSpy).was_called_with(match.any(), 'student.name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any(), 'student.id', 2)
+    end)
 end)
 
 describe('set value using path', function()

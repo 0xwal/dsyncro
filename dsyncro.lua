@@ -139,7 +139,12 @@ function dsyncroMT:__newindex(key, value)
         key               = sanitize_chars_from_string(key, '%-')
         local explodedKey = explode_string(key, '.')
         for _, k in ipairs(explodedKey) do
-            __silent[k] = true
+            local indexAsInteger = tonumber(k)
+            if indexAsInteger then
+                __silent[indexAsInteger] = true
+            else
+                __silent[k] = true
+            end
         end
     end
 

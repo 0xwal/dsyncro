@@ -185,6 +185,9 @@ function dsyncroMT:traverseToRoot()
             return
         end
         currentInstance = rawget(instanceToReturn, '__parent')
+        if currentInstance then
+            currentInstance = currentInstance()
+        end
         return instanceToReturn
     end
 end
@@ -201,7 +204,7 @@ function dsyncroMT:invokeWatchers(key)
         return
     end
 
-    parent:invokeWatchers(rawget(self, '__key'))
+    parent():invokeWatchers(rawget(self, '__key'))
 end
 
 function dsyncroMT:createChild(key, items)
@@ -211,7 +214,7 @@ function dsyncroMT:createChild(key, items)
         newT[k] = v
     end
 
-    rawset(newT, '__parent', self)
+    rawset(newT, '__parent', function() return self end)
     rawset(newT, '__key', key)
 
     return newT

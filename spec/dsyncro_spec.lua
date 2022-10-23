@@ -55,9 +55,6 @@ end
 
 assert:register('matcher', 'object_contain', object_contain)
 assert:register('matcher', 'array_contain', array_contain)
-assert:register('matcher', 'any', function()
-    return function() return true end
-end)
 
 describe('dsyncro', function()
 
@@ -181,9 +178,9 @@ describe('dsyncro', function()
             local watcherSpy = spy()
             dsyncro['@name'] = watcherSpy
             dsyncro['name']  = 'waleed'
-            assert.spy(watcherSpy).was_called_with('waleed', match.any())
+            assert.spy(watcherSpy).was_called_with('waleed', match.any)
             dsyncro['name'] = 'Waleed'
-            assert.spy(watcherSpy).was_called_with('Waleed', match.any())
+            assert.spy(watcherSpy).was_called_with('Waleed', match.any)
 
             assert.spy(watcherSpy).was_called(2)
         end)
@@ -193,11 +190,11 @@ describe('dsyncro', function()
             local watcherSpy     = spy()
             dsyncro['@students'] = watcherSpy
             dsyncro['students']  = {}
-            assert.spy(watcherSpy).was_called_with(match.object_contain({}), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({}), match.any)
             dsyncro['students']['waleed'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true }), match.any)
             dsyncro['students']['bisoon'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true, bisoon = true }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ waleed = true, bisoon = true }), match.any)
             assert.spy(watcherSpy).was_called(3)
         end)
 
@@ -207,11 +204,11 @@ describe('dsyncro', function()
             dsyncro['@class']            = watcherSpy
             dsyncro['class']             = {}
             dsyncro['class']['students'] = {}
-            assert.spy(watcherSpy).was_called_with(match.object_contain({}), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({}), match.any)
             dsyncro['class']['students']['waleed'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }), match.any)
             dsyncro['class']['students']['bisoon'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any)
             assert.spy(watcherSpy).was_called(4)
         end)
 
@@ -220,11 +217,11 @@ describe('dsyncro', function()
             local watcherSpy     = spy()
             dsyncro['@students'] = watcherSpy
             dsyncro['students']  = {}
-            assert.spy(watcherSpy).was_called_with(match.array_contain({}), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({}), match.any)
             table.insert(dsyncro['students'], 'Waleed')
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed' }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed' }), match.any)
             table.insert(dsyncro['students'], 'BISOON')
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed', 'BISOON' }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ 'Waleed', 'BISOON' }), match.any)
             assert.spy(watcherSpy).was_called(3)
         end)
 
@@ -234,11 +231,11 @@ describe('dsyncro', function()
             dsyncro['@class']            = watcherSpy
             dsyncro['class']             = {}
             dsyncro['class']['students'] = {}
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = {} }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = {} }), match.any)
             table.insert(dsyncro['class']['students'], 'Waleed')
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed' } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed' } }), match.any)
             table.insert(dsyncro['class']['students'], 'BISOON')
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed', 'BISOON' } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ students = { 'Waleed', 'BISOON' } }), match.any)
             assert.spy(watcherSpy).was_called(4)
         end)
 
@@ -247,13 +244,13 @@ describe('dsyncro', function()
             local watcherSpy     = spy()
             dsyncro['@students'] = watcherSpy
             dsyncro['students']  = {}
-            assert.spy(watcherSpy).was_called_with(match.array_contain({}), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({}), match.any)
             table.insert(dsyncro['students'], { name = 'Waleed' })
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' } }), match.any)
             assert.is_equal('Waleed', dsyncro['students'][1].name)
 
             table.insert(dsyncro['students'], { name = 'BISOON' })
-            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' }, { name = 'BISOON' } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.array_contain({ { name = 'Waleed' }, { name = 'BISOON' } }), match.any)
             assert.is_equal('BISOON', dsyncro['students'][2].name)
 
             assert.spy(watcherSpy).was_called(3)
@@ -265,7 +262,7 @@ describe('dsyncro', function()
             dsyncro.watch.students = watcherSpy
             dsyncro['students']    = { t = 99 }
             assert.spy(watcherSpy).was_called(1)
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ __store = { t = 99 } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ __store = { t = 99 } }), match.any)
         end)
 
         it('should execute watcher when add a table with inline child as table', function()
@@ -274,9 +271,9 @@ describe('dsyncro', function()
             data['@class']                      = watcherSpy
             data['class']                       = { students = {} }
             data['class']['students']['waleed'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true } }), match.any)
             data['class']['students']['bisoon'] = true
-            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any())
+            assert.spy(watcherSpy).was_called_with(match.object_contain({ students = { waleed = true, bisoon = true } }), match.any)
             assert.spy(watcherSpy).was_called(3)
         end)
 
@@ -285,9 +282,9 @@ describe('dsyncro', function()
             local watcherSpy   = spy()
             dsyncro.watch.name = watcherSpy
             dsyncro.name       = 'waleed'
-            assert.spy(watcherSpy).was_called_with('waleed', match.any())
+            assert.spy(watcherSpy).was_called_with('waleed', match.any)
             dsyncro.name = 'Waleed'
-            assert.spy(watcherSpy).was_called_with('Waleed', match.any())
+            assert.spy(watcherSpy).was_called_with('Waleed', match.any)
             assert.spy(watcherSpy).was_called(2)
         end)
     end)
@@ -338,7 +335,7 @@ describe('dsyncro set handler', function()
         dsyncro['name'] = value
         dsyncro['name'] = value
         assert.spy(onSetSpy).was_called(1)
-        assert.spy(onSetSpy).was_called_with(match.any(), 'name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any, 'name', 'Waleed')
     end)
 
     it('should able to set a value without invoking callback', function()
@@ -443,9 +440,9 @@ describe('dsyncro set handler', function()
         dsyncro['students']['second']      = { name = 'Bisoon' }
         dsyncro['students']['second'].name = '0xBISOON'
         assert.spy(onSetSpy).was_called(1)
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students.first.name', '0xWaleed')
-        assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second', match.any())
-        assert.spy(onSetSpy).was_not_called_with(match.any(), 'students.second.name', match.any())
+        assert.spy(onSetSpy).was_called_with(match.any, 'students.first.name', '0xWaleed')
+        assert.spy(onSetSpy).was_not_called_with(match.any, 'students.second', match.any)
+        assert.spy(onSetSpy).was_not_called_with(match.any, 'students.second.name', match.any)
     end)
 
     it('should able silent only a field in a table without silencing its siblings', function()
@@ -456,8 +453,8 @@ describe('dsyncro set handler', function()
         data['students']['-id']  = 1
         data['students']['name'] = 'Waleed'
         assert.spy(onSetSpy).was_called(2)
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students', match.any())
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students.name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any, 'students', match.any)
+        assert.spy(onSetSpy).was_called_with(match.any, 'students.name', 'Waleed')
     end)
 
     it('should not silent a field that previously silenced', function()
@@ -469,9 +466,9 @@ describe('dsyncro set handler', function()
         data['students']['id']   = 2
         data['students']['name'] = 'Waleed'
         assert.spy(onSetSpy).was_called(3)
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students', match.any())
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students.name', 'Waleed')
-        assert.spy(onSetSpy).was_called_with(match.any(), 'students.id', 2)
+        assert.spy(onSetSpy).was_called_with(match.any, 'students', match.any)
+        assert.spy(onSetSpy).was_called_with(match.any, 'students.name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any, 'students.id', 2)
     end)
 
     it('should not silent a field that has a silenced parent', function()
@@ -485,9 +482,9 @@ describe('dsyncro set handler', function()
         data['student']['name'] = 'Waleed'
         data['student']['id']   = 2
         assert.spy(onSetSpy).was_called(3)
-        assert.spy(onSetSpy).was_called_with(match.any(), 'student.name', 'BISOON')
-        assert.spy(onSetSpy).was_called_with(match.any(), 'student.name', 'Waleed')
-        assert.spy(onSetSpy).was_called_with(match.any(), 'student.id', 2)
+        assert.spy(onSetSpy).was_called_with(match.any, 'student.name', 'BISOON')
+        assert.spy(onSetSpy).was_called_with(match.any, 'student.name', 'Waleed')
+        assert.spy(onSetSpy).was_called_with(match.any, 'student.id', 2)
     end)
 end)
 

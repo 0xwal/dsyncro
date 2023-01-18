@@ -1,3 +1,5 @@
 .idea/
 .vscode/
 *.log
+luacov.report.out
+luacov.stats.out

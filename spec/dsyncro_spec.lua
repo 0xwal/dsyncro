@@ -117,6 +117,17 @@ describe('dsyncro', function()
         assert.is_equal(2, #dsyncro['students'])
     end)
 
+    it('expect __parent to be a function', function()
+        local dsyncro       = dsyncro.new()
+        dsyncro['students'] = {}
+        assert.is_function(dsyncro['students'].__parent)
+    end)
+
+    it('expect __parent to be nil on direct instance of dsyncro', function()
+        local dsyncro = dsyncro.new()
+        assert.is_nil(dsyncro.__parent)
+    end)
+
     describe('rawItems', function()
         local dsyncroInstance
 
